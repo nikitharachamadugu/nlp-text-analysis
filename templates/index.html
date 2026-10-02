@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextPulse NLP - Advanced Text & Sentiment Analysis</title>
+    <meta name="description" content="Production-ready NLP text analyzer powered by Python Flask. Analyze sentiment, readability, keywords, part of speech, and text summary in real-time.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="background-decorations">
+        <div class="glow-orb orb-1"></div>
+        <div class="glow-orb orb-2"></div>
+        <div class="glow-orb orb-3"></div>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="app-header">
+        <div class="container header-container">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <span class="brand-name">TextPulse<span class="brand-badge">NLP</span></span>
+                    <span class="brand-tagline">Intelligent Linguistic Analytics</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <span class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span class="status-label">Render Cloud Ready</span>
+                </span>
+                <a href="#quick-docs" class="btn btn-ghost" id="docs-btn">API & Info</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container main-content">
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-badge">Production Flask App &bull; Powered by NLP</div>
+            <h1 class="hero-title">Deep Text & Sentiment Intelligence</h1>
+            <p class="hero-subtitle">
+                Inspect sentiment polarity, readability indexes, lexical complexity, part-of-speech distributions, and extract summaries with zero latency.
+            </p>
+        </section>
+
+        <!-- Input Section -->
+        <section class="workspace-card glassmorphism">
+            <div class="workspace-header">
+                <div class="sample-pills-label">Quick Samples:</div>
+                <div class="sample-pills">
+                    <button class="pill-btn" data-sample="positive">Positive Review</button>
+                    <button class="pill-btn" data-sample="critical">Support Complaint</button>
+                    <button class="pill-btn" data-sample="tech">Tech Article</button>
+                    <button class="pill-btn" data-sample="academic">Academic Abstract</button>
+                </div>
+                <div class="file-tools">
+                    <label for="file-upload" class="pill-btn pill-action" title="Upload .txt file">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                        Upload .txt
+                    </label>
+                    <input type="file" id="file-upload" accept=".txt,.md,.log" style="display:none;">
+                    <button class="pill-btn pill-danger" id="clear-btn" title="Clear text">Clear</button>
+                </div>
+            </div>
+
+            <div class="textarea-wrapper">
+                <textarea 
+                    id="input-text" 
+                    placeholder="Enter, paste, or choose a sample text to begin comprehensive NLP analysis..." 
+                    rows="7"
+                    spellcheck="false"
+                ></textarea>
+            </div>
+
+            <div class="workspace-footer">
+                <div class="live-counter">
+                    <span id="live-word-count">0</span> words &bull; 
+                    <span id="live-char-count">0</span> characters &bull; 
+                    Est. Reading: <span id="live-reading-time">0s</span>
+                </div>
+                <div class="action-buttons">
+                    <button id="analyze-btn" class="btn btn-primary">
+                        <span class="btn-spinner" id="analyze-spinner" style="display: none;"></span>
+                        <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                        </svg>
+                        <span class="btn-text">Analyze Text</span>
+                        <span class="kbd-shortcut">Ctrl+↵</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading State Indicator -->
+        <div id="loading-indicator" class="loading-state" style="display: none;">
+            <div class="pulse-loader"></div>
+            <p>Analyzing linguistic structure, sentiment vectors, and metrics...</p>
+        </div>
+
+        <!-- Error Alert -->
+        <div id="error-alert" class="alert-banner" style="display: none;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span id="error-message">Error message text here</span>
+        </div>
+
+        <!-- Results Dashboard -->
+        <div id="results-dashboard" class="results-dashboard" style="display: none;">
+            <!-- Top Stats Ribbon -->
+            <div class="stats-grid">
+                <div class="stat-card glassmorphism">
+                    <div class="stat-icon icon-words">📝</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-words">0</div>
+                        <div class="stat-label">Total Words</div>
+                    </div>
+                </div>
+                <div class="stat-card glassmorphism">
+                    <div class="stat-icon icon-chars">🔤</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-chars">0</div>
+                        <div class="stat-label">Characters</div>
+                    </div>
+                </div>
+                <div class="stat-card glassmorphism">
+                    <div class="stat-icon icon-sentences">📑</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-sentences">0</div>
+                        <div class="stat-label">Sentences</div>
+                    </div>
+                </div>
+                <div class="stat-card glassmorphism">
+                    <div class="stat-icon icon-reading">⏱️</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-reading">0s</div>
+                        <div class="stat-label">Reading Time</div>
+                    </div>
+                </div>
+                <div class="stat-card glassmorphism">
+                    <div class="stat-icon icon-speaking">🎙️</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="stat-speaking">0s</div>
+                        <div class="stat-label">Speaking Time</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Primary 2-Column Grid -->
+            <div class="analysis-grid">
+                <!-- Column 1: Sentiment & Emotions -->
+                <div class="dashboard-card glassmorphism">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-title-icon">🎭</span>
+                            Sentiment & Tone
+                        </h2>
+                        <span class="badge" id="sentiment-badge">Neutral</span>
+                    </div>
+
+                    <div class="sentiment-summary-box">
+                        <div class="sentiment-dial-wrapper">
+                            <div class="sentiment-score" id="sentiment-score">0.00</div>
+                            <div class="sentiment-score-label">Polarity Index</div>
+                        </div>
+                        <div class="sentiment-meta">
+                            <div class="meta-row">
+                                <span class="meta-label">Overall Mood:</span>
+                                <span class="meta-val" id="sentiment-mood">Objective</span>
+                            </div>
+                            <div class="meta-row">
+                                <span class="meta-label">Subjectivity:</span>
+                                <span class="meta-val" id="sentiment-subjectivity">0%</span>
+                            </div>
+                            <div class="polarity-meter">
+                                <div class="meter-labels">
+                                    <span>Negative (-1.0)</span>
+                                    <span>Neutral (0)</span>
+                                    <span>Positive (+1.0)</span>
+                                </div>
+                                <div class="meter-bar-track">
+                                    <div class="meter-bar-fill" id="meter-fill"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sentence Sentiment Timeline -->
+                    <div class="subsection">
+                        <h3 class="subsection-title">Sentence-by-Sentence Breakdown</h3>
+                        <div class="sentence-list" id="sentence-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: Readability & Complexity -->
+                <div class="dashboard-card glassmorphism">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-title-icon">📊</span>
+                            Readability & Complexity
+                        </h2>
+                        <span class="badge badge-info" id="readability-badge">Standard</span>
+                    </div>
+
+                    <div class="readability-hero">
+                        <div class="flesch-score-box">
+                            <div class="flesch-number" id="flesch-score">0</div>
+                            <div class="flesch-label">Flesch Reading Ease</div>
+                            <div class="flesch-meter-track">
+                                <div class="flesch-meter-fill" id="flesch-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metrics-table-wrapper">
+                        <table class="metrics-table">
+                            <thead>
+                                <tr>
+                                    <th>Index Formula</th>
+                                    <th>Calculated Value</th>
+                                    <th>Target Interpretation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Flesch-Kincaid Grade</td>
+                                    <td class="table-val" id="fk-grade">-</td>
+                                    <td>US School Grade Level</td>
+                                </tr>
+                                <tr>
+                                    <td>Coleman-Liau Index</td>
+                                    <td class="table-val" id="cli-score">-</td>
+                                    <td>Letter & Sentence Ratio</td>
+                                </tr>
+                                <tr>
+                                    <td>Automated Readability (ARI)</td>
+                                    <td class="table-val" id="ari-score">-</td>
+                                    <td>Character/Word Density</td>
+                                </tr>
+                                <tr>
+                                    <td>Avg Sentence Length</td>
+                                    <td class="table-val" id="avg-sent-len">-</td>
+                                    <td>Words per sentence</td>
+                                </tr>
+                                <tr>
+                                    <td>Avg Syllables per Word</td>
+                                    <td class="table-val" id="avg-syllables">-</td>
+                                    <td>Syllable complexity</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary 2-Column Grid -->
+            <div class="analysis-grid secondary-grid">
+                <!-- Column 1: Keywords & POS -->
+                <div class="dashboard-card glassmorphism">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-title-icon">🏷️</span>
+                            Keywords & POS Grammar
+                        </h2>
+                    </div>
+
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="tab-keywords">Top Keywords</button>
+                        <button class="tab-btn" data-tab="tab-pos">Part-of-Speech Chart</button>
+                    </div>
+
+                    <div class="tab-content active" id="tab-keywords">
+                        <p class="tab-description">Key thematic terms extracted with stop-words removed:</p>
+                        <div class="keywords-list" id="keywords-list">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="tab-content" id="tab-pos">
+                        <div class="chart-container">
+                            <canvas id="posChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Column 2: Extractive Summary & Entities -->
+                <div class="dashboard-card glassmorphism">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <span class="card-title-icon">💡</span>
+                            Extractive Summary & Entities
+                        </h2>
+                        <button class="btn btn-ghost btn-sm" id="copy-summary-btn" title="Copy summary">
+                            Copy Summary
+                        </button>
+                    </div>
+
+                    <div class="summary-box">
+                        <div class="summary-icon">✨</div>
+                        <div class="summary-content" id="summary-content">
+                            Summary will be generated automatically based on sentence significance.
+                        </div>
+                    </div>
+
+                    <div class="subsection">
+                        <h3 class="subsection-title">Recognized Entities & Patterns</h3>
+                        <div class="entities-container" id="entities-container">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Export & Utility Actions -->
+            <div class="export-bar glassmorphism">
+                <div class="export-label">Export Analysis Results:</div>
+                <div class="export-buttons">
+                    <button class="btn btn-secondary" id="export-json-btn">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                        Download JSON
+                    </button>
+                    <button class="btn btn-secondary" id="copy-report-btn">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        Copy Report
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentation & Render Guide Section -->
+        <section class="docs-section glassmorphism" id="quick-docs">
+            <div class="docs-header">
+                <h2>Render Deployment & Architecture Quick Guide</h2>
+                <span class="badge badge-success">Production Configured</span>
+            </div>
+            <div class="docs-content">
+                <div class="docs-column">
+                    <h3>Render Service Settings</h3>
+                    <ul class="doc-list">
+                        <li><strong>Environment:</strong> Python 3</li>
+                        <li><strong>Branch:</strong> <code>main</code></li>
+                        <li><strong>Root Directory:</strong> <em>(leave blank / default)</em></li>
+                        <li><strong>Build Command:</strong> <code>pip install -r requirements.txt</code></li>
+                        <li><strong>Start Command:</strong> <code>gunicorn app:app</code></li>
+                        <li><strong>Instance Type:</strong> Free ($0/mo, 512 MB RAM)</li>
+                    </ul>
+                </div>
+                <div class="docs-column">
+                    <h3>REST API Endpoint</h3>
+                    <p>Integrate directly into external apps or curl:</p>
+                    <pre class="code-block"><code>POST /api/analyze
+Content-Type: application/json
+
+{
+  "text": "Your English text to analyze..."
+}</code></pre>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="container footer-container">
+            <p>TextPulse NLP Studio &bull; Built with Flask &amp; Python &bull; Deployable on Render</p>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Action performed successfully</div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
